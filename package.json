@@ -1,0 +1,24 @@
+{
+  "name": "theme-screening-app",
+  "version": "1.0.0",
+  "description": "テーマ関連銘柄スクリーニングWebアプリケーション",
+  "main": "wsgi.py",
+  "scripts": {
+    "build": "echo 'Python Flask app - no build step required'",
+    "start": "python wsgi.py",
+    "dev": "python theme_web_app.py",
+    "install": "pip install -r requirements.txt"
+  },
+  "engines": {
+    "python": "3.9.x"
+  },
+  "dependencies": {},
+  "keywords": [
+    "stock-screening",
+    "theme-analysis",
+    "japanese-stocks",
+    "finance"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

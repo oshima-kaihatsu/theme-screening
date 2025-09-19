@@ -1,0 +1,68 @@
+# スクリーニング基本設定
+screening:
+  # 基本フィルター
+  filters:
+    min_trading_value: 500000000  # 最小売買代金（5億円）
+    min_market_cap: 10000000000   # 最小時価総額（100億円）
+    max_market_cap: 100000000000  # 最大時価総額（1000億円）
+    min_volatility: 0.02          # 最小ボラティリティ（2%）
+
+  # スコアリング重み
+  scoring_weights:
+    volume_surge: 30              # 出来高急増
+    gap_up_moderate: 20           # 適度なギャップアップ(2-5%)
+    gap_up_high: 10               # 高ギャップアップ(5-10%)
+    gap_up_extreme: -10           # 極端なギャップアップ(10%超)
+    ma5_breakout: 15              # 5日移動平均線突破
+    ma25_breakout: 20             # 25日移動平均線突破
+    lower_shadow: 10              # 下ヒゲ陽線
+    high_close: 10                # 高値引け
+    resistance_break: 15          # レジスタンス突破
+    positive_news: 25             # 好材料ニュース
+    twitter_mentions_low: 15      # Twitter言及(3-4アカウント)
+    twitter_mentions_high: 25     # Twitter言及(5アカウント以上)
+    sector_momentum: 10           # セクター上昇
+
+# データソース設定
+data_sources:
+  # Twitter監視アカウント
+  twitter_accounts:
+    - kabunomekiki
+    - Kaztocker_GGGGG
+    - dym_0707
+    - get_fast_IR
+    - mayu_19760623
+    - imakae_imaure
+    - shodousan
+    - StopYasu_bot
+    - virtualman1
+    - StopMeigara_bot
+
+  # ニュースソース
+  news_sources:
+    kabutan:
+      url: "https://kabutan.jp/news/marketnews/"
+      rss: "https://kabutan.jp/news/rss/"
+
+# 実行スケジュール
+schedule:
+  - time: "07:00"
+    action: "initial_screening"
+  - time: "08:00"
+    action: "secondary_screening"
+  - time: "08:30"
+    action: "final_screening"
+  - time: "09:00"
+    action: "market_open_monitor"
+
+# 通知設定
+notification:
+  enabled: true
+  channels:
+    - type: "line"
+      enabled: true
+    - type: "discord"
+      enabled: false
+    - type: "file"
+      enabled: true
+      path: "data/screening_results.csv"

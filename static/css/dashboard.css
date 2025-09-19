@@ -1,0 +1,240 @@
+/**
+ * ダッシュボード カスタムCSS
+ */
+
+/* 基本スタイル */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, 'Noto Sans JP', sans-serif;
+}
+
+/* ナビゲーションバー */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.navbar-brand i {
+    color: #28a745;
+}
+
+/* ステータスカード */
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.card .display-4 {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+/* テーブル */
+.table {
+    font-size: 0.9rem;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table tbody tr:hover {
+    background-color: #f1f3f5;
+}
+
+/* バッジ */
+.badge {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    font-weight: normal;
+}
+
+/* ボタン */
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* モーダル */
+.modal-xl {
+    max-width: 90%;
+}
+
+#stock-chart {
+    height: 400px;
+}
+
+/* アラートトースト */
+.toast {
+    min-width: 250px;
+}
+
+/* スクロールバー */
+.table-responsive {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+/* アニメーション */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.monitoring-active {
+    animation: pulse 2s infinite;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .card .display-4 {
+        font-size: 1.8rem;
+    }
+
+    .table {
+        font-size: 0.8rem;
+    }
+
+    .btn-sm {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* ダークテーマ（オプション） */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #212529;
+        color: #f8f9fa;
+    }
+
+    .card {
+        background-color: #343a40;
+        color: #f8f9fa;
+    }
+
+    .table {
+        color: #f8f9fa;
+    }
+
+    .table thead th {
+        background-color: #495057;
+        color: #f8f9fa;
+    }
+
+    .table tbody tr:hover {
+        background-color: #495057;
+    }
+
+    .modal-content {
+        background-color: #343a40;
+        color: #f8f9fa;
+    }
+}
+
+/* ローディングスピナー */
+.spinner-border {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
+}
+
+/* プログレスバー */
+.progress {
+    height: 25px;
+    border-radius: 5px;
+}
+
+.progress-bar {
+    font-size: 0.9rem;
+    line-height: 25px;
+}
+
+/* カスタムスクロールバー */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* 利益/損失の色分け */
+.text-profit {
+    color: #28a745 !important;
+    font-weight: bold;
+}
+
+.text-loss {
+    color: #dc3545 !important;
+    font-weight: bold;
+}
+
+/* チャートコンテナ */
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 20px;
+}
+
+/* タブコンテンツ */
+.tab-content {
+    padding-top: 20px;
+}
+
+/* フッター（必要に応じて） */
+.footer {
+    margin-top: 50px;
+    padding: 20px 0;
+    border-top: 1px solid #dee2e6;
+    text-align: center;
+    color: #6c757d;
+}
+
+/* エラーメッセージ */
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+/* 成功メッセージ */
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}

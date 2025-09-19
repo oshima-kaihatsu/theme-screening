@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テーマ関連銘柄スクリーニング | Theme Stock Screener</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .status {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .status-indicator.active {
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2 .badge {
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7em;
+        }
+
+        .gainer-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .gainer-item:hover {
+            background: #f8f9fa;
+        }
+
+        .gainer-item:last-child {
+            border-bottom: none;
+        }
+
+        .stock-info {
+            flex: 1;
+        }
+
+        .stock-code {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .stock-name {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .change-pct {
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 5px;
+        }
+
+        .change-pct.positive {
+            color: #ff4444;
+            background: #ffebee;
+        }
+
+        .change-pct.limit-up {
+            background: #ff4444;
+            color: white;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .theme-section {
+            margin-bottom: 25px;
+        }
+
+        .theme-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .theme-name {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .theme-count {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .theme-stocks {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .leader-stock {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .follower-stock {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid #c0c0c0;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .role-leader {
+            background: #ffd700;
+            color: #333;
+        }
+
+        .role-follower {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .news-item {
+            padding: 8px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            margin-top: 8px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .watchlist {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .watchlist h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+
+        .watchlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .watchlist-item {
+            background: linear-gradient(135deg, #f8f9fa, #fff);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .watchlist-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .timestamp {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+        }
+
+        .settings-panel {
+            position: fixed;
+            right: -300px;
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            transition: right 0.3s;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .settings-panel.open {
+            right: 0;
+        }
+
+        .settings-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+        }
+
+        .settings-content {
+            padding: 20px;
+        }
+
+        .settings-item {
+            margin-bottom: 20px;
+        }
+
+        .settings-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .settings-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <div class="header">
+            <h1>🚀 テーマ関連銘柄スクリーニング</h1>
+            <div class="subtitle">Theme-Based Stock Movement Screening System</div>
+        </div>
+
+        <!-- コントロール -->
+        <div class="controls">
+            <button class="btn btn-primary" onclick="runScreening()">
+                スクリーニング実行
+            </button>
+            <button class="btn btn-secondary" onclick="toggleSettings()">
+                設定
+            </button>
+            <button class="btn btn-secondary" onclick="exportReport()">
+                エクスポート
+            </button>
+            <div class="status">
+                <span id="status-text">待機中</span>
+                <div class="status-indicator" id="status-indicator"></div>
+            </div>
+        </div>
+
+        <!-- メイングリッド -->
+        <div class="main-grid">
+            <!-- 値上がり率ランキング -->
+            <div class="card">
+                <h2>📈 値上がり率ランキング <span class="badge" id="gainer-count">0</span></h2>
+                <div id="top-gainers" class="gainers-list">
+                    <div class="no-data">データがありません</div>
+                </div>
+            </div>
+
+            <!-- テーマ別グループ -->
+            <div class="card">
+                <h2>🎯 テーマ別リーダー銘柄</h2>
+                <div id="themes" class="themes-list">
+                    <div class="no-data">データがありません</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 監視リスト -->
+        <div class="watchlist">
+            <h2>👀 監視リスト</h2>
+            <div id="watchlist" class="watchlist-grid">
+                <div class="no-data">データがありません</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 設定パネル -->
+    <div class="settings-panel" id="settings-panel">
+        <div class="settings-header">
+            <h3>設定</h3>
+        </div>
+        <div class="settings-content">
+            <div class="settings-item">
+                <label class="settings-label">最小上昇率 (%)</label>
+                <input type="number" class="settings-input" id="min-change" value="5" min="3" max="50">
+            </div>
+            <div class="settings-item">
+                <label class="settings-label">分析モード</label>
+                <select class="settings-input" id="analysis-type">
+                    <option value="advanced">高度テーマ分析</option>
+                    <option value="basic">基本分析</option>
+                </select>
+            </div>
+            <div class="settings-item">
+                <label class="settings-label">自動更新</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="auto-refresh" onchange="toggleAutoRefresh()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="settings-item">
+                <button class="btn btn-primary" style="width: 100%" onclick="saveSettings()">
+                    保存
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentReport = null;
+        let isRunning = false;
+        let autoRefreshInterval = null;
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLatestReport();
+            checkStatus();
+            setInterval(checkStatus, 5000);
+        });
+
+        // スクリーニング実行
+        async function runScreening() {
+            if (isRunning) {
+                alert('スクリーニング実行中です');
+                return;
+            }
+
+            const minChange = document.getElementById('min-change').value;
+            const analysisType = document.getElementById('analysis-type').value;
+
+            showLoading();
+            updateStatus('実行中', true);
+
+            try {
+                const response = await fetch('/api/screening/run', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        min_change_pct: parseFloat(minChange),
+                        analysis_type: analysisType
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentReport = data.report;
+                    displayReport(currentReport);
+                } else {
+                    alert('スクリーニング実行エラー');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('通信エラーが発生しました');
+            } finally {
+                hideLoading();
+                updateStatus('完了', false);
+            }
+        }
+
+        // 最新レポート読み込み
+        async function loadLatestReport() {
+            try {
+                const response = await fetch('/api/screening/latest');
+                if (response.ok) {
+                    const report = await response.json();
+                    if (report.summary && report.summary.total_gainers > 0) {
+                        currentReport = report;
+                        displayReport(report);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading report:', error);
+            }
+        }
+
+        // レポート表示
+        function displayReport(report) {
+            if (!report || !report.summary) return;
+
+            // 高度分析か基本分析かを判定
+            if (report.analysis_type === 'テーマ関連銘柄連動分析') {
+                displayAdvancedReport(report);
+            } else {
+                displayBasicReport(report);
+            }
+
+            // カウント更新
+            document.getElementById('gainer-count').textContent = report.summary.total_gainers || report.summary.detected_themes || 0;
+        }
+
+        // 高度分析レポート表示
+        function displayAdvancedReport(report) {
+            // テーマランキング表示
+            displayAdvancedThemes(report.theme_rankings || []);
+
+            // 投資シグナル表示
+            displayInvestmentSignals(report.investment_signals || []);
+
+            // 監視リスト表示
+            displayWatchlist(report.watchlist || []);
+        }
+
+        // 基本分析レポート表示
+        function displayBasicReport(report) {
+            // 値上がり率ランキング
+            displayTopGainers(report.top_gainers || []);
+
+            // テーマ別
+            displayThemes(report.themes || []);
+
+            // 監視リスト
+            displayWatchlist(report.watchlist || []);
+        }
+
+        // 値上がり率ランキング表示
+        function displayTopGainers(gainers) {
+            const container = document.getElementById('top-gainers');
+
+            if (gainers.length === 0) {
+                container.innerHTML = '<div class="no-data">データがありません</div>';
+                return;
+            }
+
+            container.innerHTML = gainers.map(stock => `
+                <div class="gainer-item">
+                    <div class="stock-info">
+                        <div class="stock-code">${stock.symbol}</div>
+                        <div class="stock-name">${stock.name}</div>
+                    </div>
+                    <div class="change-pct ${stock.limit_up ? 'limit-up' : 'positive'}">
+                        +${stock.change_pct.toFixed(1)}%
+                        ${stock.limit_up ? ' ST高' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 高度テーマ表示
+        function displayAdvancedThemes(themeRankings) {
+            const container = document.getElementById('themes');
+
+            if (themeRankings.length === 0) {
+                container.innerHTML = '<div class="no-data">テーマが検出されていません</div>';
+                return;
+            }
+
+            container.innerHTML = themeRankings.map(theme => {
+                const surgeMark = theme.volume_surge ? '🔥' : '';
+                const strengthColor = theme.strength_score > 70 ? '#ff4444' : theme.strength_score > 40 ? '#ff8800' : '#666';
+
+                return `
+                    <div class="theme-section">
+                        <div class="theme-header">
+                            <span class="theme-name">${theme.theme_name} ${surgeMark}</span>
+                            <span class="theme-count" style="background: ${strengthColor}">
+                                強度${theme.strength_score} (${theme.stock_count}銘柄)
+                            </span>
+                        </div>
+                        <div class="theme-stocks">
+                            ${theme.leader_stock ? `
+                                <div class="leader-stock">
+                                    <span class="role-badge role-leader">👑 テーマリーダー</span>
+                                    <strong>${theme.leader_stock.symbol}</strong>
+                                    <div style="margin: 5px 0;">
+                                        <span class="change-pct positive">+${theme.leader_stock.change_pct}%</span>
+                                        <span style="margin-left: 10px; color: #666;">
+                                            出来高${theme.leader_stock.volume_ratio}倍
+                                        </span>
+                                        <span style="margin-left: 10px; color: #666;">
+                                            スコア${theme.leader_stock.leadership_score}
+                                        </span>
+                                    </div>
+                                    ${theme.news_highlights && theme.news_highlights.length > 0 ? `
+                                        <div class="news-item">📰 ${theme.news_highlights[0].title}</div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+                            ${theme.follower_stocks.map(stock => `
+                                <div class="follower-stock">
+                                    <span class="role-badge role-follower">${stock.role}</span>
+                                    <strong>${stock.symbol}</strong>
+                                    <span class="change-pct positive">+${stock.change_pct}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 投資シグナル表示
+        function displayInvestmentSignals(signals) {
+            // 既存のテーマセクションの後に追加
+            const themesContainer = document.getElementById('themes');
+
+            if (signals.length > 0) {
+                const signalsHtml = `
+                    <div class="investment-signals" style="margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 10px; border-left: 4px solid #007bff;">
+                        <h3 style="color: #007bff; margin-bottom: 15px;">💡 投資シグナル</h3>
+                        ${signals.map(signal => {
+                            const confidenceColor = signal.confidence === 'HIGH' ? '#ff4444' : '#ff8800';
+                            return `
+                                <div style="margin-bottom: 15px; padding: 10px; background: white; border-radius: 5px;">
+                                    <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                        <span style="background: ${confidenceColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8em; margin-right: 10px;">
+                                            ${signal.confidence}
+                                        </span>
+                                        <strong>${signal.signal_type} - ${signal.theme}</strong>
+                                    </div>
+                                    <div style="color: #666; margin-bottom: 5px;">${signal.strategy}</div>
+                                    <div style="font-size: 0.9em;">
+                                        <span style="color: #333;">リーダー: ${signal.leader}</span>
+                                        <span style="margin-left: 15px; color: #333;">ターゲット: ${signal.targets.join(', ')}</span>
+                                    </div>
+                                    <div style="color: #ff6600; font-size: 0.85em; margin-top: 5px;">${signal.risk_note}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                themesContainer.insertAdjacentHTML('afterend', signalsHtml);
+            }
+        }
+
+        // テーマ表示
+        function displayThemes(themes) {
+            const container = document.getElementById('themes');
+
+            if (themes.length === 0) {
+                container.innerHTML = '<div class="no-data">テーマが検出されていません</div>';
+                return;
+            }
+
+            container.innerHTML = themes.map(theme => {
+                const leaderStock = theme.stocks[0];
+                const followers = theme.stocks.slice(1, 3);
+
+                return `
+                    <div class="theme-section">
+                        <div class="theme-header">
+                            <span class="theme-name">${theme.name}</span>
+                            <span class="theme-count">${theme.stock_count}銘柄</span>
+                        </div>
+                        <div class="theme-stocks">
+                            ${leaderStock ? `
+                                <div class="leader-stock">
+                                    <span class="role-badge role-leader">リーダー</span>
+                                    <strong>${leaderStock.symbol}</strong> ${leaderStock.name}
+                                    <span class="change-pct positive">+${leaderStock.change_pct}%</span>
+                                    ${leaderStock.news && leaderStock.news.length > 0 ? `
+                                        <div class="news-item">📰 ${leaderStock.news[0].title}</div>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+                            ${followers.map((stock, idx) => `
+                                <div class="follower-stock">
+                                    <span class="role-badge role-follower">${idx + 2}番手</span>
+                                    <strong>${stock.symbol}</strong> ${stock.name}
+                                    <span class="change-pct positive">+${stock.change_pct}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 監視リスト表示
+        function displayWatchlist(watchlist) {
+            const container = document.getElementById('watchlist');
+
+            if (watchlist.length === 0) {
+                container.innerHTML = '<div class="no-data">監視銘柄がありません</div>';
+                return;
+            }
+
+            container.innerHTML = watchlist.map(item => `
+                <div class="watchlist-item">
+                    <div class="stock-code">${item.symbol}</div>
+                    <div class="stock-name">${item.name}</div>
+                    <div style="margin: 8px 0;">
+                        <span class="role-badge ${item.role === 'リーダー' ? 'role-leader' : 'role-follower'}">
+                            ${item.role}
+                        </span>
+                        <span style="color: #666; font-size: 0.9em;">${item.theme}</span>
+                    </div>
+                    <div class="change-pct positive">+${item.change_pct}%</div>
+                </div>
+            `).join('');
+        }
+
+        // ステータスチェック
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/screening/status');
+                if (response.ok) {
+                    const status = await response.json();
+                    isRunning = status.is_running;
+                    updateStatus(isRunning ? '実行中' : '待機中', isRunning);
+
+                    if (status.last_update) {
+                        const lastUpdate = new Date(status.last_update);
+                        const now = new Date();
+                        const diff = Math.floor((now - lastUpdate) / 60000);
+                        document.getElementById('status-text').textContent =
+                            isRunning ? '実行中' : `最終更新: ${diff}分前`;
+                    }
+                }
+            } catch (error) {
+                console.error('Status check error:', error);
+            }
+        }
+
+        // ステータス更新
+        function updateStatus(text, active) {
+            document.getElementById('status-text').textContent = text;
+            const indicator = document.getElementById('status-indicator');
+            if (active) {
+                indicator.classList.add('active');
+            } else {
+                indicator.classList.remove('active');
+            }
+        }
+
+        // ローディング表示
+        function showLoading() {
+            // 実装省略
+        }
+
+        function hideLoading() {
+            // 実装省略
+        }
+
+        // 設定パネル切り替え
+        function toggleSettings() {
+            const panel = document.getElementById('settings-panel');
+            panel.classList.toggle('open');
+        }
+
+        // 設定保存
+        function saveSettings() {
+            alert('設定を保存しました');
+            toggleSettings();
+        }
+
+        // 自動更新切り替え
+        async function toggleAutoRefresh() {
+            const enabled = document.getElementById('auto-refresh').checked;
+
+            try {
+                const response = await fetch('/api/settings/auto-refresh', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({enabled: enabled})
+                });
+
+                if (response.ok) {
+                    if (enabled) {
+                        alert('自動更新を開始しました（30分間隔）');
+                    } else {
+                        alert('自動更新を停止しました');
+                    }
+                }
+            } catch (error) {
+                console.error('Auto refresh error:', error);
+            }
+        }
+
+        // エクスポート
+        async function exportReport() {
+            if (!currentReport) {
+                alert('エクスポートするデータがありません');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/export?format=csv');
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `theme_report_${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('エクスポートエラー');
+            }
+        }
+    </script>
+</body>
+</html>

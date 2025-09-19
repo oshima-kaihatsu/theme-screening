@@ -1,0 +1,8 @@
+# Web Dashboard追加パッケージ
+flask==3.0.0
+flask-cors==4.0.0
+flask-socketio==5.3.5
+python-socketio==5.10.0
+plotly==5.18.0
+dash==2.14.2
+dash-bootstrap-components==1.5.0
