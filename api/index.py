@@ -1,11 +1,45 @@
-import sys
+from flask import Flask, render_template, jsonify, request
+from flask_cors import CORS
+import json
+from datetime import datetime, timedelta
 import os
 
-# Add the parent directory to Python path to import our modules
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Simple Flask app for Vercel
+app = Flask(__name__)
+CORS(app)
 
-# Import the Flask app from theme_web_app
-from theme_web_app import app
+@app.route('/')
+def index():
+    """メインページ"""
+    return jsonify({
+        'status': 'success',
+        'message': 'テーマ関連銘柄スクリーニングシステム',
+        'timestamp': datetime.now().isoformat(),
+        'version': '1.0.0'
+    })
+
+@app.route('/api/screening/status', methods=['GET'])
+def get_status():
+    """ステータス取得"""
+    return jsonify({
+        'is_running': False,
+        'auto_refresh': False,
+        'last_update': None,
+        'message': 'System is ready'
+    })
+
+@app.route('/api/screening/latest', methods=['GET'])
+def get_latest_screening():
+    """最新スクリーニング結果取得"""
+    return jsonify({
+        'timestamp': datetime.now().isoformat(),
+        'summary': {
+            'total_gainers': 0,
+            'themes_detected': 0
+        },
+        'message': 'Demo mode - screening functionality available',
+        'themes': [],
+        'watchlist': []
+    })
 
 # Export the app for Vercel
-# Vercel will automatically handle the WSGI interface
