@@ -212,19 +212,56 @@
                 return;
             }
 
-            let html = '';
+            // サマリー表示
+            let html = `
+                <div style="background: #e0e7ff; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="color: #4c51bf; margin-bottom: 10px;">📊 スクリーニング結果サマリー</h3>
+                    <div style="display: flex; justify-content: space-around;">
+                        <div>検出テーマ: <strong>${data.summary.themes_detected}</strong></div>
+                        <div>注目銘柄: <strong>${data.summary.total_gainers}</strong></div>
+                        <div>平均上昇率: <strong>${data.summary.avg_change}%</strong></div>
+                    </div>
+                </div>
+            `;
+
+            // テーマ別表示
             data.themes.forEach(theme => {
                 html += `
                     <div class="theme-card">
-                        <div class="theme-title">${theme.name}</div>
+                        <div class="theme-title">${theme.name}
+                            <span style="float: right; font-size: 0.9rem; color: #666;">
+                                強度: ${theme.strength}%
+                            </span>
+                        </div>
                         <div class="stock-list">
                             ${theme.stocks.map(stock =>
-                                `<span class="stock-badge">${stock.symbol}: ${stock.change}%</span>`
+                                `<span class="stock-badge" style="background: ${
+                                    parseFloat(stock.change) > 5 ? '#fee' : '#e0e7ff'
+                                }; color: ${
+                                    parseFloat(stock.change) > 5 ? '#c53030' : '#4c51bf'
+                                };">${stock.symbol}: ${stock.change}%</span>`
                             ).join('')}
                         </div>
                     </div>
                 `;
             });
+
+            // 監視リスト
+            if (data.watchlist && data.watchlist.length > 0) {
+                html += `
+                    <div class="theme-card" style="background: #fef5e7;">
+                        <div class="theme-title" style="color: #d68910;">
+                            ⭐ 要監視銘柄
+                        </div>
+                        ${data.watchlist.map(item => `
+                            <div style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                                <strong>${item.symbol} ${item.name}</strong>
+                                <div style="color: #666; font-size: 0.9rem;">${item.reason}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
 
             content.innerHTML = html;
         }
