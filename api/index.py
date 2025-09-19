@@ -1,22 +1,17 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 from flask_cors import CORS
 import json
 from datetime import datetime, timedelta
 import os
 
 # Simple Flask app for Vercel
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)
 
 @app.route('/')
 def index():
-    """メインページ"""
-    return jsonify({
-        'status': 'success',
-        'message': 'テーマ関連銘柄スクリーニングシステム',
-        'timestamp': datetime.now().isoformat(),
-        'version': '1.0.0'
-    })
+    """メインページ - HTMLを返す"""
+    return render_template('index.html')
 
 @app.route('/api/screening/status', methods=['GET'])
 def get_status():

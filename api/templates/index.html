@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テーマ関連銘柄スクリーニングシステム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 1200px;
+            width: 90%;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+        .status-card {
+            background: #f7f9fc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .status-label {
+            color: #666;
+            font-weight: 500;
+        }
+        .status-value {
+            color: #333;
+            font-weight: bold;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            margin: 10px;
+        }
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102,126,234,0.4);
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f0f4f8;
+            border-radius: 10px;
+            display: none;
+        }
+        .results.show {
+            display: block;
+        }
+        .theme-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .theme-title {
+            color: #667eea;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        .stock-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .stock-badge {
+            background: #e0e7ff;
+            color: #4c51bf;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 1.2rem;
+            margin: 20px 0;
+        }
+        .error {
+            background: #fed7d7;
+            color: #9b2c2c;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📈 テーマ関連銘柄スクリーニングシステム</h1>
+
+        <div class="status-card">
+            <div class="status-row">
+                <span class="status-label">システム状態:</span>
+                <span class="status-value" id="system-status">準備完了</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">最終更新:</span>
+                <span class="status-value" id="last-update">-</span>
+            </div>
+            <div class="status-row">
+                <span class="status-label">監視銘柄数:</span>
+                <span class="status-value" id="stock-count">423</span>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="btn" id="startBtn" onclick="startScreening()">
+                スクリーニング開始
+            </button>
+            <button class="btn" onclick="fetchStatus()">
+                ステータス確認
+            </button>
+        </div>
+
+        <div class="results" id="results">
+            <h2>スクリーニング結果</h2>
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        async function fetchStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/screening/status`);
+                const data = await response.json();
+
+                document.getElementById('system-status').textContent =
+                    data.is_running ? '実行中' : '準備完了';
+                document.getElementById('last-update').textContent =
+                    data.last_update || '未実行';
+            } catch (error) {
+                console.error('Error fetching status:', error);
+            }
+        }
+
+        async function startScreening() {
+            const btn = document.getElementById('startBtn');
+            btn.disabled = true;
+            btn.textContent = 'スクリーニング中...';
+
+            const results = document.getElementById('results');
+            results.classList.add('show');
+            document.getElementById('resultsContent').innerHTML =
+                '<div class="loading">スクリーニング実行中...</div>';
+
+            try {
+                // スクリーニング結果を取得
+                const response = await fetch(`${API_BASE}/screening/latest`);
+                const data = await response.json();
+
+                displayResults(data);
+            } catch (error) {
+                document.getElementById('resultsContent').innerHTML =
+                    `<div class="error">エラーが発生しました: ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'スクリーニング開始';
+            }
+        }
+
+        function displayResults(data) {
+            const content = document.getElementById('resultsContent');
+
+            if (!data.themes || data.themes.length === 0) {
+                content.innerHTML = `
+                    <div class="theme-card">
+                        <div class="theme-title">デモモード</div>
+                        <p>${data.message || 'スクリーニング機能は利用可能です'}</p>
+                        <p>検出テーマ: ${data.summary?.themes_detected || 0}</p>
+                        <p>注目銘柄: ${data.summary?.total_gainers || 0}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            data.themes.forEach(theme => {
+                html += `
+                    <div class="theme-card">
+                        <div class="theme-title">${theme.name}</div>
+                        <div class="stock-list">
+                            ${theme.stocks.map(stock =>
+                                `<span class="stock-badge">${stock.symbol}: ${stock.change}%</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            content.innerHTML = html;
+        }
+
+        // 初期ステータス取得
+        fetchStatus();
+
+        // 30秒ごとにステータス更新
+        setInterval(fetchStatus, 30000);
+    </script>
+</body>
+</html>
